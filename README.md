@@ -4,12 +4,19 @@ This is a lab that I did to explore several points when provisioning cloud nativ
 ![image](https://github.com/MartaMasson/LogsM2C/assets/37702790/f7f2b6ce-60cd-419f-9eec-9a250ff7342c)
 
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+# Requirements
+1.	Each log inside each file shall be load into the database.
+2.	Ensure every log is load into the database.
+3.	The entire application shall be provisioned in private network with no public endpoint.
+4.	Keep keys and secrets safe in the vault.
+5.	Restrict access to the resources by the resources at minimum level.
+6.	Present implementation design.
+7.	Zero touch deployment considering application and infrastructure.
+8.	High available. If a node fail, a new one needs to be instanciated.
+9.	Auto scaling.
+10.	Cost optimization. Use stop instances for AKS nodes.  
+11.	Evalute right size for pods and nodes.
+
 
 # Build and Test
 TODO: Describe and show how to build your code and run the tests. 
