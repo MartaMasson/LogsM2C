@@ -1,0 +1,180 @@
+#trigger:
+#  branches:
+#    include:
+#    - master
+
+trigger:
+  branches:
+    exclude:
+    - '*'
+
+variables:
+  azsubscriptionConn: 'sc-dowdtf'
+
+pool:
+  name: Default
+  #demands:
+  #- msbuild
+  #- visualstudio
+  #- vstest
+
+stages:
+- stage: identityfederation
+  displayName: Federating user managed identity with AKS Cluster
+  jobs:
+  - job: federation
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: '$(azsubscriptionConn)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Install azure cli
+          echo "Installing azure cli"
+          sudo az aks install-cli
+
+          export RESOURCE_GROUP=rg-spoke-kedaDemo
+          export UAMI=aks-wl-user-identity
+          export KEYVAULT_NAME=kvmmglogs
+          export CLUSTER_NAME=aks-keda-demo
+          export SERVICE_ACCOUNT=sa-workload-identity
+          export NAMESPACE=default
+
+          echo RESOURCE_GROUP = $RESOURCE_GROUP
+          echo UAMI = $UAMI
+          echo KEYVAULT_NAME = $KEYVAULT_NAME
+          echo CLUSTER_NAME = $CLUSTER_NAME
+          echo SERVICE_ACCOUNT = $SERVICE_ACCOUNT
+          echo NAMESPACE = $NAMESPACE
+
+          # Get AKS credentials
+          echo "Get azure credentials"
+          az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME
+
+          #Getting AKS_OIDC_ISSUER
+          echo Get oidcIssuerProfile.issuerUrl az aks show --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME --query "oidcIssuerProfile.issuerUrl" -o tsv
+          export AKS_OIDC_ISSUER="$(az aks show --resource-group rg-spoke-kedaDemo --name aks-keda-demo --query "oidcIssuerProfile.issuerUrl" -o tsv)"
+          echo $AKS_OIDC_ISSUER
+
+          #Getting $USER_ASSIGNED_CLIENT_ID
+          echo "Get User Identity Client"
+          export USER_ASSIGNED_CLIENT_ID="$(az identity show -g $RESOURCE_GROUP --name $UAMI --query 'clientId' -o tsv)"
+          echo USER_ASSIGNED_CLIENT_ID = $USER_ASSIGNED_CLIENT_ID
+
+          #Getting $IDENTITY_TENANT
+          echo "Get User Tenant Id"
+          export IDENTITY_TENANT=$(az account show --query tenantId -o tsv)
+          echo IDENTITY_TENANT = $IDENTITY_TENANT
+
+          #Creating Service Account
+          echo "Creating Service Account"
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            annotations:
+              azure.workload.identity/client-id: ${USER_ASSIGNED_CLIENT_ID}
+            name: ${SERVICE_ACCOUNT}
+            namespace: ${NAMESPACE}
+          EOF
+
+          #Creating federation
+          echo "Creating Federation"
+          az identity federated-credential create --name aksfederatedidentity --identity-name  $UAMI --resource-group $RESOURCE_GROUP --issuer $AKS_OIDC_ISSUER --subject system:serviceaccount:$NAMESPACE:$SERVICE_ACCOUNT
+          echo "End"
+
+          #Creating Service Provider 
+          echo "Creating Service Provider"
+          cat <<EOF | kubectl apply -f -
+          # This is a SecretProviderClass example using workload identity to access your key vault
+          apiVersion: secrets-store.csi.x-k8s.io/v1
+          kind: SecretProviderClass
+          metadata:
+            name: azure-kvvault-kvmmglogs-msi
+            namespace: default
+          spec:
+            provider: azure
+            secretObjects:
+            - data:
+              - objectName: AzureServiceBusFilesconnstr
+                key: AzureServiceBusFilesconnstr
+              - objectName: AzureServiceBusLogsconnstr
+                key: AzureServiceBusLogsconnstr
+              secretName: workload-id-kvmmglogs # Name of  secret on AKS
+              type: Opaque
+            parameters:
+              usePodIdentity: "false"
+              clientID: "${USER_ASSIGNED_CLIENT_ID}" # Setting this to use workload identity
+              keyvaultName: ${KEYVAULT_NAME}       # Set to the name of your key vault
+              cloudName: ""                         # [OPTIONAL for Azure] if not provided, the Azure environment defaults to AzurePublicCloud
+              objects:  |
+                array:
+                  - |
+                    objectName: AzureServiceBusFilesconnstr
+                    objectAlias: AzureServiceBusFilesconnstr
+                    objectType: secret
+                  - |
+                    objectName: AzureServiceBusLogsconnstr
+                    objectAlias: AzureServiceBusLogsconnstr
+                    objectType: secret
+              tenantId: "${IDENTITY_TENANT}"        # The tenant ID of the key vault
+          EOF
+
+          #Creating TriggerAuthentication
+          echo "Creating TriggerAuthentication"
+          cat <<EOF | kubectl apply -f -
+          apiVersion: keda.sh/v1alpha1
+          kind: TriggerAuthentication
+          metadata:
+            name: sbqueuekedascale-trigger-auth
+          spec:
+            podIdentity:
+                provider: azure-workload
+                identityId: ${USER_ASSIGNED_CLIENT_ID}.
+          EOF
+
+
+
+
+# Kubectl v1
+# Deploy, configure, update a Kubernetes cluster in Azure Container Service by running kubectl commands.
+#- task: Kubernetes@1
+  #inputs:
+  # Kubernetes Cluster
+    #connectionType: 'Kubernetes Service Connection' # 'Azure Resource Manager' | 'Kubernetes Service Connection' | 'None'. Required when command != logout. Service connection type. Default: Kubernetes Service Connection.
+    #kubernetesServiceEndpoint: # string. Required when connectionType = Kubernetes Service Connection && command != logout. Kubernetes service connection. 
+    #azureSubscriptionEndpoint: # string. Required when connectionType = Azure Resource Manager && command != logout. Azure subscription. 
+    #azureResourceGroup: # string. Required when connectionType = Azure Resource Manager && command != logout. Resource group. 
+    #kubernetesCluster: # string. Required when connectionType = Azure Resource Manager && command != logout. Kubernetes cluster. 
+    #useClusterAdmin: false # boolean. Optional. Use when connectionType = Azure Resource Manager && command != logout. Use cluster admin credentials. Default: false.
+    #namespace: # string. Optional. Use when command != logout. Namespace. 
+  # Commands
+    #command: # 'apply' | 'create' | 'delete' | 'exec' | 'expose' | 'get' | 'login' | 'logout' | 'logs' | 'run' | 'set' | 'top'. Command. 
+    #useConfigurationFile: false # boolean. Optional. Use when command != login && command != logout. Use configuration. Default: false.
+    #configurationType: 'configuration' # 'configuration' | 'inline'. Optional. Use when useConfigurationFile = true. Configuration type. Default: configuration.
+    #configuration: # string. Required when configurationType = configuration. File path. 
+    #inline: # string. Required when configurationType = inline. Inline configuration. 
+    #arguments: # string. Optional. Use when command != login && command != logout. Arguments. 
+  # Secrets
+    #secretType: 'dockerRegistry' # 'dockerRegistry' | 'generic'. Required when command != login && command != logout. Type of secret. Default: dockerRegistry.
+    #secretArguments: # string. Optional. Use when secretType = generic && command != login && command != logout. Arguments. 
+    #containerRegistryType: 'Azure Container Registry' # 'Azure Container Registry' | 'Container Registry'. Required when secretType = dockerRegistry && command != login && command != logout. Container registry type. Default: Azure Container Registry.
+    #dockerRegistryEndpoint: # string. Optional. Use when secretType = dockerRegistry && containerRegistryType = Container Registry && command != login && command != logout. Docker registry service connection. 
+    #azureSubscriptionEndpointForSecrets: # string. Optional. Use when secretType = dockerRegistry && containerRegistryType = Azure Container Registry && command != login && command != logout. Azure subscription. 
+    #azureContainerRegistry: # string. Optional. Use when secretType = dockerRegistry && containerRegistryType = Azure Container Registry && command != login && command != logout. Azure container registry. 
+    #secretName: # string. Optional. Use when command != login && command != logout. Secret name. 
+    #forceUpdate: true # boolean. Optional. Use when command != login && command != logout. Force update secret. Default: true.
+  # ConfigMaps
+    #configMapName: # string. Optional. Use when command != login && command != logout. ConfigMap name. 
+    #forceUpdateConfigMap: false # boolean. Optional. Use when command != login && command != logout. Force update configmap. Default: false.
+    #useConfigMapFile: false # boolean. Optional. Use when command != login && command != logout. Use file. Default: false.
+    #configMapFile: # string. Required when useConfigMapFile = true && command != login && command != logout. ConfigMap file. 
+    #configMapArguments: # string. Optional. Use when useConfigMapFile = false && command != login && command != logout. Arguments. 
+  # Advanced
+    #versionOrLocation: 'version' # 'version' | 'location'. Kubectl. Default: version.
+    #versionSpec: '1.13.2' # string. Optional. Use when versionOrLocation = version. Version spec. Default: 1.13.2.
+    #checkLatest: false # boolean. Optional. Use when versionOrLocation = version. Check for latest version. Default: false.
+    #specifyLocation: # string. Required when versionOrLocation = location. Path to kubectl. 
+    #workingDirectory: '$(System.DefaultWorkingDirectory)' # string. Alias: cwd. Working directory. Default: $(System.DefaultWorkingDirectory).
+    #outputFormat: 'json' # 'json' | 'yaml' | 'none'. Output format. Default: json.        

@@ -1,0 +1,89 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+#trigger:
+#  branches:
+#    include:
+#    - master
+
+
+trigger:
+  branches:
+    exclude:
+    - '*'
+
+pool:
+  vmImage: ubuntu-latest
+
+#pool:
+#  name: Default
+  #demands:
+  #- msbuild
+  #- visualstudio
+  #- vstest
+
+jobs:
+- job: InfrastructurePrepValidate
+  displayName: Terraform for keda infrastructure
+  #pool:
+  #  vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+  - task: TerraformInstaller@0
+    displayName: Install Terraform latest
+
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Init'
+    inputs:
+      provider: 'azurerm'
+      command: init
+      backendServiceArm: 'sc-dowdtf'
+      backendAzureRmResourceGroupName: rg-dowd-devops
+      backendAzureRmStorageAccountName: dowdtf
+      backendAzureRmContainerName: ts-keda-labs
+      backendAzureRmKey: terraform.tfstate
+      workingDirectory: '$(System.DefaultWorkingDirectory)/IaC/terraform/'
+  
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Validate'
+    inputs:
+      provider: 'azurerm'
+      command: validate
+      backendServiceArm: 'sc-dowdtf'
+      backendAzureRmResourceGroupName: rg-dowd-devops
+      backendAzureRmStorageAccountName: dowdtf
+      backendAzureRmContainerName: ts-keda-labs
+      backendAzureRmKey: terraform.tfstate
+      workingDirectory: '$(System.DefaultWorkingDirectory)/IaC/terraform/'
+
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Plan'
+    inputs:
+      provider: 'azurerm'
+      command: plan
+      backendServiceArm: 'sc-dowdtf'
+      environmentServiceNameAzureRM: 'sc-dowdtf'
+      backendAzureRmResourceGroupName: rg-dowd-devops
+      backendAzureRmStorageAccountName: dowdtf
+      backendAzureRmContainerName: ts-keda-labs
+      backendAzureRmKey: terraform.tfstate
+      workingDirectory: '$(System.DefaultWorkingDirectory)/IaC/terraform/'
+
+#- job: InfrastructureApply
+#  displayName: Terraform apply
+#  pool:
+#    vmImage: Default
+#  steps:
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Apply'
+    inputs:
+      provider: 'azurerm'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/IaC/terraform/'
+      environmentServiceNameAzureRM: 'sc-dowdtf'
+      backendAzureRmResourceGroupName: dowd-devops-rg
+      backendAzureRmStorageAccountName: dowdtf
+      backendAzureRmContainerName: ts-keda-labs
+      backendAzureRmKey: terraform.tfstate
+      command: apply

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-logsm2c-fromlogstocosmos
+data:
+  azure_keyvault_url: "https://kvmmglogs.vault.azure.net/"
+  azure_sb_connstr_logsqueue: "Endpoint=sb://sbmmglogs.servicebus.windows.net/;SharedAccessKeyName=teste;SharedAccessKey=Acz3kj/z8WOFs6gyz+M56QMbqk9SgYiFk+ASbDtCC2U=;EntityPath=sbqueuelogs"

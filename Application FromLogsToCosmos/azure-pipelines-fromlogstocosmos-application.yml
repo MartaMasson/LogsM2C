@@ -1,0 +1,44 @@
+#trigger:
+#  branches:
+#    include:
+#    - master
+
+trigger:
+  branches:
+    exclude:
+    - '*'
+
+variables:
+  azsubscriptionConn: 'sc-dowdtf'
+  dockerRegistryServiceConnection: 'logM2CacrConn'
+  imageRepository: 'fromlogstocosmos'
+  containerRegistry: 'crmmglogs.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Application FromLogsToCosmos/fromlogstocosmos/dockerfile'
+  tag: 'latest'
+
+#pool:
+#  vmImage: ubuntu-latest
+
+pool:
+  name: Default
+  #demands:
+  #- msbuild
+  #- visualstudio
+  #- vstest
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
