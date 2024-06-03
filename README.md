@@ -7,7 +7,7 @@ This is a lab that I did to explore several points when provisioning cloud nativ
 
 # Requirements
 1.	Each log inside each file shall be load into the database.
-2.	Ensure every log is load into the database.
+2.	Ensure every log is loaded into the database.
 3.	The entire application shall be provisioned in private network with no public endpoint.
 4.	Keep keys and secrets safe in the vault.
 5.	Restrict access to the resources by the resources at minimum level.
