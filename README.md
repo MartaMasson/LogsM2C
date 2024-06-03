@@ -1,5 +1,5 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+This is a lab that I did to explore several points when provisioning cloud native applications. The application should move every single line of log files from an on premises folder, where they are generated, to a database where it´s possible to query log lines. 
 
 # Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
