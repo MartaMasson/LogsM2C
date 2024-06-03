@@ -14,7 +14,7 @@ This is a lab that explores several points when provisioning cloud native applic
 6.	Zero touch deployment considering application and infrastructure.
 7.	High available. If a node fail, a new one needs to be instanciated.
 8.	Auto scaling.
-9.	Cost optimization. Use stop instances for AKS nodes.
+9.	Cost optimization. Use spot instances for AKS nodes.
 10.	Evalute right size for pods and nodes.
 11.	Present implementation design.
 
