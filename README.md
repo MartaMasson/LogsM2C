@@ -1,7 +1,8 @@
 # Introduction 
 This is a lab that I did to explore several points when provisioning cloud native applications. The application should move every single line of log files from an on premises folder, where they are generated, to a database where it´s possible to query log lines. The files can be generated any time, any quantity, any size and the application should process the files as soon as they are generated. 
 
-![image](https://github.com/MartaMasson/LogsM2C/assets/37702790/f7f2b6ce-60cd-419f-9eec-9a250ff7342c)
+![image](https://github.com/MartaMasson/LogsM2C/assets/37702790/2982c58b-31fb-41ff-81d3-3e709138f973)
+
 
 
 # Requirements
