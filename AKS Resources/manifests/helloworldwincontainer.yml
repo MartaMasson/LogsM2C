@@ -1,0 +1,34 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: helloworldwincontainer
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: helloworldwincontainer
+  template:
+    metadata:
+      labels:
+        app: helloworldwincontainer
+    spec:
+      os:
+        name: windows
+      nodeSelector:
+        pool_type: User
+      containers:
+      - name: helloworldwincontainer
+        image: crmmglogs.azurecr.io/helloworldwincontainer
+        env:
+        - name: JAVA_OPTIONS
+          value: '-Xms256m -Xmx512m'
+#        resources:
+#          requests:
+#            memory: "256Mi"
+#            cpu: "0.1"
+#          limits:
+#            memory: "512Mi"
+#            cpu: "0.5"
+        ports:
+        #- containerPort: 8080

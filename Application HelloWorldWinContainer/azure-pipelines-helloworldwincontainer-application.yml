@@ -1,0 +1,56 @@
+#trigger:
+#  branches:
+#    include:
+#    - master
+
+trigger:
+  branches:
+    exclude:
+    - '*'
+
+variables:
+  azsubscriptionConn: 'sc-dowdtf'
+  dockerRegistryServiceConnection: 'logM2CacrConn'
+  imageRepository: 'fromlogstocosmos'
+  containerRegistry: 'crmmglogs.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Application FromLogsToCosmos/fromlogstocosmos/dockerfile'
+  tag: 'latest'
+
+#pool:
+#  vmImage: ubuntu-latest
+
+
+
+pool:
+  vmImage: 'windows-latest'
+  #name: hub-vm-win
+  #demands:
+  #- msbuild
+  #- visualstudio
+  #- vstest
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - powershell: |
+        $config = @{
+          "dns" = @("1.1.1.1");
+          "experimental" = $true
+        }
+        $config | ConvertTo-Json | Set-Content -Path 'C:\\ProgramData\\Docker\\config\\daemon.json'
+        Restart-Service -Name 'docker'
+      displayName: 'Configure Docker daemon'
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+buildContext: '$(Build.Repository.LocalPath)'

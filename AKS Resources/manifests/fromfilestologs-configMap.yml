@@ -4,5 +4,5 @@ metadata:
   name: cm-logsm2c-fromfilestologs
 data:
   azure_keyvault_url: "https://kvmmglogs.vault.azure.net/"
-  azure_sb_connstr_filesqueue: "connection string sb"
+  azure_sb_connstr_filesqueue: "Endpoint=sb://sbmmglogs.servicebus.windows.net/;SharedAccessKeyName=teste2;SharedAccessKey=tBQZNGQIoYXNpg1f+z7DHJ18O3kOtTpNJ+ASbNyacfc=;EntityPath=sbqueuefiles"
 

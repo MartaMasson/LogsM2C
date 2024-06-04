@@ -1,0 +1,28 @@
+# Use a Windows Server Core image as the base image
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+#FROM --platform=windows/amd64 mcr.microsoft.com/windows/servercore:ltsc2019 AS builder
+
+# Install latest PowerShell release
+#RUN powershell -Command \
+#        $ErrorActionPreference = 'Stop'; \
+#        $ProgressPreference = 'SilentlyContinue'; \
+#        Invoke-WebRequest -Uri 'https://github.com/PowerShell/PowerShell/releases/download/v7.4.0/PowerShell-7.4.0-win-x64.zip' -OutFile 'powershell.zip'; \
+#        Expand-Archive -Path powershell.zip -DestinationPath C:\; \
+#        Remove-Item -Path powershell.zip
+#ENV POWERSHELL_HOME="C:\\PowerShell-7.4.0-win-x64"
+#ENV PATH="$POWERSHELL_HOME\\;$PATH"
+
+# Download the MSI installer
+#ADD https://github.com/PowerShell/PowerShell/releases/download/v7.1.3/PowerShell-7.1.3-win-x64.msi /PowerShell-7.1.3-win-x64.msi
+
+# Install PowerShell
+#RUN msiexec.exe /package C:\\PowerShell-7.1.3-win-x64.msi /quiet /norestart
+#RUN C:\Windows\System32\msiexec.exe /package PowerShell-7.1.3-win-x64.msi /quiet /norestart
+
+
+# Verify new PowerShell.exe runs
+#RUN pwsh.exe -NoLogo -NoProfile -Command "Write-Host 'Hello, World!';"
+#RUN C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Your-Command-Here
+
+CMD ["echo %PATH%"]
+

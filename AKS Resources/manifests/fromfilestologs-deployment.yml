@@ -1,0 +1,91 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: fromfilestologs
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fromfilestologs
+  template:
+    metadata:
+      labels:
+        app: fromfilestologs
+        azure.workload.identity/use: "true"
+    spec:
+      os:
+        name: linux
+      serviceAccountName: "sa-workload-identity"
+      nodeSelector:
+        pool_type: User
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: pool_priority
+                operator: In
+                values:
+                - Spot
+      tolerations:
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
+      containers:
+      - name: fromfilestologs
+        image: crmmglogs.azurecr.io/fromfilestologs
+        env:
+        - name: AZURE_KEYVAULT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cm-logsm2c-fromfilestologs
+              key: azure_keyvault_url
+        - name: AZURE_SB_CONN_STR
+          valueFrom:
+            configMapKeyRef:
+              name: cm-logsm2c-fromfilestologs
+              key: azure_sb_connstr_filesqueue
+#        - name: AZURE_SB_CONN_STR
+#          valueFrom:
+#            secretKeyRef:
+#              name: workload-id-kvmmglogs
+#              key: AzureServiceBusFilesconnstr
+        - name: JAVA_OPTIONS
+          value: '-Xms256m -Xmx512m'
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "0.1"
+          limits:
+            memory: "512Mi"
+            cpu: "0.5"
+        volumeMounts:
+        - name: secrets-store01-inline
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+        ports:
+        #- containerPort: 8080
+#        livenessProbe:
+#          httpGet:
+#            path: /actuator/health
+#            port: 8080
+#          initialDelaySeconds: 60
+#          periodSeconds: 10
+#          failureThreshold: 3
+#        readinessProbe:
+#          httpGet:
+#            path: /actuator/health
+#            port: 8080
+#          initialDelaySeconds: 30
+#          periodSeconds: 5
+#          failureThreshold: 1
+      volumes:
+        - name: secrets-store01-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-kvvault-kvmmglogs-msi"
