@@ -26,10 +26,3 @@ This is a lab that explores several points when provisioning cloud native applic
 3.	An application running on AKS PODs consumes the file queue, reads the file in the blob storage and sends every single line in the log queue.
 4.	Another application running on AKS PODs consumes log queue and writes it into CosmosDB.
 
-
-# Architecture Design Records
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-# Future improvements
-TODO: Explain how other users and developers can contribute to make your code better. 
-
