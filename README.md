@@ -14,15 +14,19 @@ This is a lab that explores several points when provisioning cloud native applic
 6.	Zero touch deployment considering application and infrastructure.
 7.	High available. If a node fail, a new one needs to be instanciated.
 8.	Auto scaling.
-9.	Cost optimization. Use spot instances for AKS nodes.
+9.	Cost optimization. Usage spot instances for AKS nodes.
 10.	Evalute right size for pods and nodes.
 11.	Present implementation design.
 
 # Data flow and reference architecture
-TODO: Describe and show how to build your code and run the tests. 
+![image](https://github.com/MartaMasson/LogsM2C/assets/37702790/e4a8a71c-55d5-40e2-a094-61252f63e22e)
 
 # Implementation architecture
 TODO: Explain how other users and developers can contribute to make your code better. 
 
+# Architecture Design Records
+TODO: Explain how other users and developers can contribute to make your code better. 
+
 # Future improvements
 TODO: Explain how other users and developers can contribute to make your code better. 
+
