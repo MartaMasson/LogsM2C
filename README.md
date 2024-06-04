@@ -18,11 +18,14 @@ This is a lab that explores several points when provisioning cloud native applic
 10.	Evalute right size for pods and nodes.
 11.	Present implementation design.
 
-# Data flow and reference architecture
-![image](https://github.com/MartaMasson/LogsM2C/assets/37702790/e4a8a71c-55d5-40e2-a094-61252f63e22e)
+# Architecture and data Flow
+![image](https://github.com/MartaMasson/LogsM2C/assets/37702790/6d31c7ff-dc73-4838-8344-3b4bdb54e5bd)
 
-# Implementation architecture
-TODO: Explain how other users and developers can contribute to make your code better. 
+1.	Log files are sent from on premises environment, any time of the day, to a blob storage.
+2.	Eventgrid is triggered every file written in the blob storage and sends a notification about it in servicebus in the file queue.
+3.	An application running on AKS PODs consumes the file queue, reads the file in the blob storage and sends every single line in the log queue.
+4.	Another application running on AKS PODs consumes log queue and writes it into CosmosDB.
+
 
 # Architecture Design Records
 TODO: Explain how other users and developers can contribute to make your code better. 
