@@ -6,15 +6,15 @@ This is a lab that explores several points when provisioning cloud native applic
 
 
 # Requirements
-1.	Ensure each log inside each file is loaded into the database.
-2.	The entire application shall be provisioned in private network with no public endpoint.
-3.	Keep keys and secrets safe in the vault.
-4.	Restrict access to the resources at a minimum level.
-5.	Zero touch deployment considering application and infrastructure.
-6.	High available within a region.
-7.	Auto scaling.
-8.	Cost optimization. Usage spot instances for AKS nodes.
-9.	Evalute right size for pods and nodes.
+1.	(Reliability) Ensure each log inside each file is loaded into the database.
+2.	(Security) The entire application shall be provisioned in private network with no public endpoint.
+3.	(Security) Keep keys and secrets safe in the vault.
+4.	(Security) Restrict access to the resources at a minimum level.
+5.	(Operational Excellence) Zero touch deployment considering application and infrastructure.
+6.	(Reliabilty) ConHigh available within a region.
+7.	(Performance) Auto scaling.
+8.	(Cost Optimization) Cost optimization. Usage spot instances for AKS nodes.
+9.	(Cost Optimization) Evalute right size for pods and nodes.
 10.	Present implementation design.
 
 # Architecture and data Flow
